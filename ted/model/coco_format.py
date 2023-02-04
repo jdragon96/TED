@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from typing import List
 
 @dataclass
-class Coco_HashmapValue:
+class Coco_ImageHash:
     width: int = None
     height: int = None
     image_name: str = None
@@ -44,15 +45,15 @@ class Coco_Annotations:
     id: int = None
     image_id: int = None
     category_id: int = None
-    segmentation: list[list[float]] = None
+    segmentation: List[List[float]] = None
     area: float = None
-    bbox: list[float] = None
+    bbox: List[float] = None
 
 
 @dataclass
 class CocoFormat:
     info: Coco_Info  = None
-    licenses: list[Coco_Licenses] = None
-    images: list[Coco_Images] = None
-    annotations: list[Coco_Annotations] = None
-    categories: list[Coco_Categories] = None
+    licenses: List[Coco_Licenses] = None
+    images: List[Coco_Images] = None
+    annotations: List[Coco_Annotations] = None
+    categories: List[Coco_Categories] = None

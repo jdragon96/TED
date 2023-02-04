@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List, Dict
 
 @dataclass
 class Yolo_BBox:
@@ -16,10 +17,12 @@ class Yolo_Points:
 class Yolo_Label:
     label: int = None
     category_id: int = None
-    segmetation: list[float] = None
+    segmetation: List[float] = None
     bbox: Yolo_BBox = None
 
 @dataclass
 class YoloFormat:
     image_name: str = None
-    labels: list[Yolo_Label] = None
+    labels: List[Yolo_Label] = None
+    
+YoloSave = Dict[int, YoloFormat]

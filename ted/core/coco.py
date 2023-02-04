@@ -1,13 +1,12 @@
 import sys
-sys.path.append(r"C:\Users\USER\Desktop\Projects\Yolov5\Cameleon")
-from core.base import Base
-from core.format import coco_format
-from core.format import yolo_format
-from core.yolo import YoloModule
+sys.path.append(r"..")
+from ted.model.module_base import Base
+from ted.model import coco_format, yolo_format
+from ted.core.yolo import YoloModule
 
-from core import enum as E
+from ted.core import enum as E
 
-from types import GenericAlias
+from typing import Dict
 import json
 
 class CocoModule(Base):
@@ -86,26 +85,39 @@ class CocoModule(Base):
       return None
   
   @staticmethod
-  def transform_to_yolo(data: coco_format.CocoFormat, ai_type: E.AI_TYPE) -> yolo_format.YoloFormat:
+  def transform_to_yolo(data: coco_format.CocoFormat, ai_type: E.AI_TYPE) \
+    -> yolo_format.YoloSave:
+    """
+    transfer coco labels to yolo
+
+    Args:
+        data (coco_format.CocoFormat): Pared Coco dataset using CocoModule.load()
+        ai_type (E.AI_TYPE): data type
+
+    Returns:
+        yolo_format.YoloFormat: parsed yolo data
+    """
     hashmap = CocoModule.gen_hashmap_for_image(data)
-    yolo_hash: dict(int, yolo_format.YoloFormat) = {}
+    yolo_hash: yolo_format.YoloSave = {}
 
     if ai_type == E.AI_TYPE.OBJECT_DETECTION:
       pass
 
     elif ai_type == E.AI_TYPE.INSTANCE_SEGMENTATION:
       for annotation in data.annotations:
-        if yolo_hash.get(annotation.image_id) is None: 
-          yolo_hash[annotation.image_id] = yolo_format.YoloFormat(
-            image_name = hashmap[annotation.image_id].image_name,
-            labels=[])
+        # generate label container per image
+        if yolo_hash.get(annotation.image_id) is None:
+          yolo_hash[annotation.image_id] = yolo_format.YoloFormat(image_name=hashmap[annotation.image_id].image_name, labels=[])
 
+        # change coordinate width/height ratio in [0, 1]
         seg = []
-        for index in range(len(annotation.segmentation[0])):
-          seg.append(
-            YoloModule.YoloCoordX(annotation.segmentation[0][index], hashmap[annotation.image_id].width) if index % 2 == 0 
-            else YoloModule.YoloCoordX(annotation.segmentation[0][index], hashmap[annotation.image_id].height))
+        current_value = 0
+        # for index in range(len(annotation.segmentation[0])):
+        for index, value in enumerate(annotation.segmentation[0]):
+          current_value = YoloModule.yolo_coord_x(value, hashmap[annotation.image_id].width) if index % 2 == 0 else YoloModule.yolo_coord_y(value, hashmap[annotation.image_id].height)
+          seg.append(current_value)
 
+        # save transformed coordinate value
         yolo_hash[annotation.image_id].labels.append(
           yolo_format.Yolo_Label(
             category_id=annotation.category_id,
@@ -119,9 +131,10 @@ class CocoModule(Base):
     return yolo_hash
 
   @staticmethod
-  def gen_hashmap_for_image(data: coco_format.CocoFormat):
+  def gen_hashmap_for_image(data: coco_format.CocoFormat) \
+    -> Dict[int, coco_format.Coco_ImageHash]:
     """ 
-    generate image id hash table using parsed COCO data.
+    generate hash table based on image id(key) using parsed COCO data.
 
     - key: iamge id
     - value: iamge width, height
@@ -133,7 +146,7 @@ class CocoModule(Base):
     """
     hash_map = {}
     for image in data.images:
-      c = coco_format.Coco_HashmapValue(
+      c = coco_format.Coco_ImageHash(
         height=image.height,
         width=image.width,
         image_name = image.file_name
