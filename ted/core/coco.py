@@ -1,19 +1,21 @@
 import sys
-sys.path.append(r"..")
-from ted.model.module_base import Base
-from ted.model import coco_format, yolo_format
-from ted.core.yolo import YoloModule
-
-from ted.core import enum as E
-
 from typing import Dict
 import json
+import os
+import yaml
+
+from ted.model import coco_format, yolo_format
+from ted.model.module_base import Base
+from ted.core import enum as E
+from ted.core.yolo import YoloModule
+
 
 class CocoModule(Base):
 
   # https://docs.aws.amazon.com/rekognition/latest/customlabels-dg/md-coco-overview.html
   @staticmethod
-  def load(filename: str) -> coco_format.CocoFormat:
+  def load(filename: str) \
+    -> coco_format.CocoFormat:
     try:
       # read-only
       loaded_coco = json.load(open(filename, mode="r"))
@@ -97,7 +99,7 @@ class CocoModule(Base):
     Returns:
         yolo_format.YoloFormat: parsed yolo data
     """
-    hashmap = CocoModule.gen_hashmap_for_image(data)
+    hashmap = CocoModule._gen_hashmap_for_image(data)
     yolo_hash: yolo_format.YoloSave = {}
 
     if ai_type == E.AI_TYPE.OBJECT_DETECTION:
@@ -131,7 +133,7 @@ class CocoModule(Base):
     return yolo_hash
 
   @staticmethod
-  def gen_hashmap_for_image(data: coco_format.CocoFormat) \
+  def _gen_hashmap_for_image(data: coco_format.CocoFormat) \
     -> Dict[int, coco_format.Coco_ImageHash]:
     """ 
     generate hash table based on image id(key) using parsed COCO data.
@@ -153,8 +155,3 @@ class CocoModule(Base):
       )
       hash_map[image.id] = c
     return hash_map
-
-if __name__ == "__main__":
-  a = CocoModule.load(r"C:\Users\USER\Desktop\Projects\Yolov5\Data\GagueInstance\instances_default.json")
-  b = CocoModule.transform_to_yolo(a, E.AI_TYPE.INSTANCE_SEGMENTATION)
-  print(b)

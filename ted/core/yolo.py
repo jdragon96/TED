@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append(r"C:\Users\wodyd\Desktop\MyGit\AI\TED")
+import yaml
 from ted.model import yolo_format
 
 class YoloModule:
@@ -38,21 +38,22 @@ class YoloModule:
   @staticmethod
   def save_split(data: yolo_format.YoloSave, train_path, val_path, train_length) -> bool:
     try:
-      # save yolo label data
-      filename = ""
-      new_line = ""
-      for image_id in data:
-        filename = os.path.splitext(data[image_id].image_name)[0]
-        f = open(os.path.join(path, f"{filename}.txt"), 'w')
+      # # save yolo label data
+      # filename = ""
+      # new_line = ""
+      # for image_id in data:
+      #   filename = os.path.splitext(data[image_id].image_name)[0]
+      #   f = open(os.path.join(save, f"{filename}.txt"), 'w')
         
-        # sort label based on category_id
-        data[image_id].labels.sort(key=lambda x: x.category_id, reverse=False)
+      #   # sort label based on category_id
+      #   data[image_id].labels.sort(key=lambda x: x.category_id, reverse=False)
         
-        # write labels
-        for label in data[image_id].labels:
-          new_line = "{} {}{}".format(label.category_id, f" ".join([f"{coord}" for coord in label.segmetation])[:-1], "\n")
-          f.write(new_line)
-        f.close()
+      #   # write labels
+      #   for label in data[image_id].labels:
+      #     new_line = "{} {}{}".format(label.category_id, f" ".join([f"{coord}" for coord in label.segmetation])[:-1], "\n")
+      #     f.write(new_line)
+      #   f.close()
+      pass
         
     except Exception as e:
         print(e)
@@ -77,3 +78,18 @@ class YoloModule:
       
     except Exception as e:
         print(e)
+
+  @staticmethod
+  def create_yaml(file_name, save_path, train_path, val_path):
+    try:
+      obj = {}
+      obj["train"] = train_path
+      obj["val"] = val_path
+      obj["names"] = None
+
+      with open(os.path.join(save_path, f"{file_name}.yaml"), "w") as f:
+        yaml.dump(obj, f)
+      return True
+      
+    except Exception as e:
+      return False

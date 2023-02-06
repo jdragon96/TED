@@ -93,9 +93,10 @@ class Coco_Window(QMainWindow, form_class):
     # 1. create folders for Yolov5
     save_path = self.label_SavePath.text()
     image_path = self.label_ImagePath.text()
+    if self.edit_TrainDataRatio.text() is None: return
     train_ratio = str(self.edit_TrainDataRatio.text())
     
-    if not train_ratio.isdigit(): return
+    # if not train_ratio.isdigit(): return
     train_ratio = float(train_ratio)
     if save_path is None: return
     if not os.path.exists(save_path):
@@ -105,7 +106,7 @@ class Coco_Window(QMainWindow, form_class):
       
     a = CocoModule.load(fr"{self.label_CocoPath.text()}")
     yolo_data = CocoModule.transform_to_yolo(a, AI_TYPE.INSTANCE_SEGMENTATION)
-    image_ids = yolo_data.keys()
+    image_ids = list(yolo_data.keys())
     
     # 2. copy images to train/images and val/images
     # 2-1 split data based on the number of train data ratio
@@ -127,7 +128,7 @@ class Coco_Window(QMainWindow, form_class):
       YoloModule.save_one(yolo_data[image_id], train_label_path)
     
     # save valid label
-    for image_id in image_ids[:num_of_train_images:]:
+    for image_id in image_ids[num_of_train_images:]:
       # 1. copy to val image folder.
       copyfile(
         f"{os.path.join(image_path, yolo_data[image_id].image_name)}", 
@@ -135,3 +136,6 @@ class Coco_Window(QMainWindow, form_class):
       
       # 2. save label data that copied image in step 1 before.
       YoloModule.save_one(yolo_data[image_id], val_label_path)
+
+    # and create .yaml file
+    YoloModule.create_yaml("my_yolo", save_path, os.path.join(save_path, "train"), os.path.join(save_path, "label"))
